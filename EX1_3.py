@@ -1,4 +1,4 @@
-
+# I get help from ChatGPT especially on how to turn the equations into coding for python.
 def improved_euler_step(y, z, h):
     """Performs an Improved Euler method step."""
     y_mid = y + h * z / 2
