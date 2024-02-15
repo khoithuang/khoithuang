@@ -1,3 +1,4 @@
+# I get help from ChatGPT especially on how to turn the equations into coding for python.
 import math
 
 
