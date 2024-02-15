@@ -1,75 +1,58 @@
-import math
 import random
 
-
-def generate_rock_size(mean, variance):
-    """Generate a normally distributed rock size given the mean and variance using Box-Muller transform."""
-    # Box-Muller transform requires two uniformly distributed random numbers
-    u1, u2 = random.random(), random.random()
-    # Convert uniform random numbers to normal distribution
-    z0 = math.sqrt(-2.0 * math.log(u1)) * math.cos(2.0 * math.pi * u2)
-    # Scale by variance and mean
-    return mean + math.sqrt(variance) * z0
+# Constants
+N = 100  # Number of rocks in each sample
+NUM_SAMPLES = 11  # Number of samples
+MAX_ROCK_SIZE = 1.0  # Maximum size of rocks
+MIN_ROCK_SIZE = 0.0  # Minimum size of rocks
+MESH_1 = 1.0  # Size of mesh screen 1"x1"
+MESH_2 = 3 / 8  # Size of mesh screen 3/8"x3/8"
 
 
+# Function to simulate rock crushing and sieving
+def simulate_crushing_and_sieving():
+    samples = []
+    for _ in range(NUM_SAMPLES):
+        sample = [random.uniform(MIN_ROCK_SIZE, MAX_ROCK_SIZE) for _ in range(N)]
+        samples.append(sample)
+
+    return samples
+
+
+# Function to calculate mean
 def calculate_mean(data):
-    """Calculate the mean of a list of numbers."""
     return sum(data) / len(data)
 
 
+# Function to calculate variance
 def calculate_variance(data, mean):
-    """Calculate the variance of a list of numbers given the mean."""
     return sum((x - mean) ** 2 for x in data) / len(data)
 
 
-def simulate_crushing_operation(n_samples=11, sample_size=100, lower_bound=3 / 8, upper_bound=1):
-    """
-    Simulate a rock crushing operation. Generates rock sizes based on a normal distribution
-    with unknown mean and variance. Captures rocks that are too big to pass through a 3/8" mesh
-    but too small to pass through a 1" mesh.
+# Main function
+def main():
+    samples = simulate_crushing_and_sieving()
 
-    Parameters:
-    - n_samples (int): The number of samples to generate.
-    - sample_size (int): The size of each sample (number of rocks).
-    - lower_bound (float): The lower size limit for rocks (in inches).
-    - upper_bound (float): The upper size limit for rocks (in inches).
+    sampling_means = []
+    sampling_variances = []
 
-    Returns:
-    - A tuple containing the sample means, sample variances, mean of sample means, and variance of sample means.
-    """
+    for sample in samples:
+        mean = calculate_mean(sample)
+        variance = calculate_variance(sample, mean)
 
-    # Assume a reasonable mean and variance for the distribution of rock sizes
-    assumed_mean = (upper_bound + lower_bound) / 2
-    assumed_variance = ((upper_bound - lower_bound) / 4) ** 2
+        sampling_means.append(mean)
+        sampling_variances.append(variance)
 
-    sample_means = []
-    sample_variances = []
+        print("Sample Mean:", mean)
+        print("Sample Variance:", variance)
+        print()
 
-    for i in range(n_samples):
-        # Generate the sample
-        sample = [generate_rock_size(assumed_mean, assumed_variance) for i in range(sample_size)]
-        # Filter the sample based on size constraints
-        filtered_sample = [rock for rock in sample if lower_bound < rock < upper_bound]
-        # Calculate sample mean and variance
-        sample_mean = calculate_mean(filtered_sample)
-        sample_variance = calculate_variance(filtered_sample, sample_mean)
-        # Store sample statistics
-        sample_means.append(sample_mean)
-        sample_variances.append(sample_variance)
+    overall_mean = calculate_mean(sampling_means)
+    overall_variance = calculate_variance(sampling_means, overall_mean)
 
-    # Calculate the mean of the sample means
-    overall_mean = calculate_mean(sample_means)
-    # Calculate the variance of the sample means
-    overall_variance = calculate_variance(sample_means, overall_mean)
-
-    return sample_means, sample_variances, overall_mean, overall_variance
+    print("Mean of Sampling Means:", overall_mean)
+    print("Variance of Sampling Means:", overall_variance)
 
 
-# Run the simulation
-sample_means, sample_variances, overall_mean, overall_variance = simulate_crushing_operation()
-
-# Display the results
-print("Sample Means:", sample_means)
-print("Sample Variances:", sample_variances)
-print("Mean of Sample Means:", overall_mean)
-print("Variance of Sample Means:", overall_variance)
+if __name__ == "__main__":
+    main()
