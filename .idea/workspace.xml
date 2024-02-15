@@ -47,7 +47,7 @@
     ]
   }
 }]]></component>
-  <component name="RunManager" selected="Python.EX1_1">
+  <component name="RunManager" selected="Python.EX1_3">
     <configuration name="EX1_1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="energyconversion" />
       <option name="ENV_FILES" value="" />
@@ -154,7 +154,23 @@
       <option name="project" value="LOCAL" />
       <updated>1707959422256</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="EX1">
+      <option name="closed" value="true" />
+      <created>1707960161956</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1707960161956</updated>
+    </task>
+    <task id="LOCAL-00007" summary="EX1">
+      <option name="closed" value="true" />
+      <created>1707960228675</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1707960228675</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
