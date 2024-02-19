@@ -2,103 +2,105 @@ import math
 import random
 
 
-def simulate_sample(mean, stddev, n=100):
+def simulate_gravel_sizes(supplier, n=100):
     """
-    Simulate a sample of gravel sizes from a normal distribution.
+    Simulates n gravel sizes for a supplier, based on their screening process.
 
     Parameters:
-    - mean: The mean size of gravel particles.
-    - stddev: The standard deviation of gravel sizes.
-    - n: The number of gravel particles in the sample.
+    - supplier: Identifier for the supplier ('A' or 'B').
+    - n: Number of gravel sizes to simulate.
 
     Returns:
     A list of simulated gravel sizes.
     """
-    return [random.gauss(mean, stddev) for _ in range(n)]
+    if supplier == 'A':
+        # Supplier A: Sizes between 3/8" and 1"
+        min_size, max_size = 3 / 8, 1
+    else:
+        # Supplier B: Sizes up to 7/8"
+        min_size, max_size = 3 / 8, 7 / 8
+
+    return [random.uniform(min_size, max_size) for _ in range(n)]
 
 
-def calculate_mean(sample):
+def calculate_mean(data):
+    """Calculates the mean of the given data."""
+    return sum(data) / len(data)
+
+
+def calculate_std_dev(data, mean):
+    """Calculates the standard deviation of the given data."""
+    return math.sqrt(sum((x - mean) ** 2 for x in data) / (len(data) - 1))
+
+
+def simpsons_rule(f, a, b, n):
     """
-    Calculate the mean of a sample.
+    Numerically integrates f from a to b using Simpson's 1/3 rule with n intervals.
 
     Parameters:
-    - sample: A list of numeric values.
+    - f: The function to integrate.
+    - a, b: The interval to integrate over.
+    - n: The number of intervals (must be even).
 
     Returns:
-    The mean of the sample.
+    The estimated integral of f from a to b.
     """
-    return sum(sample) / len(sample)
+    h = (b - a) / n
+    x = [a + i * h for i in range(n + 1)]
+    y = [f(xi) for xi in x]
+    return (h / 3) * (y[0] + 4 * sum(y[i] for i in range(1, n, 2)) + 2 * sum(y[i] for i in range(2, n, 2)) + y[n])
 
 
-def calculate_stddev(sample, mean):
+def t_distribution(x, df):
     """
-    Calculate the standard deviation of a sample.
+    Computes the value of the t-distribution PDF for a given x and degrees of freedom.
+    """
+    coeff = math.gamma((df + 1) / 2) / (math.sqrt(df * math.pi) * math.gamma(df / 2))
+    return coeff * (1 + x ** 2 / df) ** (-(df + 1) / 2)
+
+
+def perform_t_test(mean_a, std_dev_a, mean_b, std_dev_b, n_a, n_b):
+    """
+    Performs a 1-sided t-test to compare the means of two samples.
 
     Parameters:
-    - sample: A list of numeric values.
-    - mean: The mean value of the sample.
+    - mean_a, std_dev_a: Mean and standard deviation of sample A.
+    - mean_b, std_dev_b: Mean and standard deviation of sample B.
+    - n_a, n_b: Sample sizes for A and B.
 
     Returns:
-    The standard deviation of the sample.
+    The t-statistic and p-value for the test.
     """
-    variance = sum((x - mean) ** 2 for x in sample) / (len(sample) - 1)
-    return math.sqrt(variance)
+    se_diff = math.sqrt(std_dev_a ** 2 / n_a + std_dev_b ** 2 / n_b)
+    t_stat = (mean_a - mean_b) / se_diff
+    df = min(n_a, n_b) - 1  # Simplified calculation of degrees of freedom
 
+    # Use Simpson's rule to estimate the p-value from the t-distribution
+    p_value = simpsons_rule(lambda x: t_distribution(x, df), t_stat, 10,
+                            1000)  # 10 is an arbitrary upper limit for integration
 
-def t_test(mean_a, mean_b, stddev_a, stddev_b, n_a, n_b):
-    """
-    Perform a t-test to compare two independent samples.
-
-    Parameters:
-    - mean_a: The mean of sample A.
-    - mean_b: The mean of sample B.
-    - stddev_a: The standard deviation of sample A.
-    - stddev_b: The standard deviation of sample B.
-    - n_a: The size of sample A.
-    - n_b: The size of sample B.
-
-    Returns:
-    The t-statistic for comparing the two samples.
-    """
-    pooled_se = math.sqrt(stddev_a ** 2 / n_a + stddev_b ** 2 / n_b)
-    t_statistic = (mean_a - mean_b) / pooled_se
-    return t_statistic
+    return t_stat, p_value
 
 
 def main():
-    """
-    Main function to execute the gravel size comparison test.
-    It simulates samples for both suppliers, calculates their means and standard deviations,
-    performs a t-test, and reports if there's a significant difference in gravel sizes.
-    """
-    n = 100  # Sample size for each supplier
-    # Assuming normal distribution parameters for Supplier A
-    mean_a, stddev_a = 0, 1
-    # Adjusted mean for smaller size by Supplier B
-    mean_b, stddev_b = -0.1, 0.9
+    sample_a = simulate_gravel_sizes('A')
+    sample_b = simulate_gravel_sizes('B')
 
-    # Simulate samples for both suppliers
-    sample_a = simulate_sample(mean_a, stddev_a, n)
-    sample_b = simulate_sample(mean_b, stddev_b, n)
-
-    # Calculate means and standard deviations for both samples
     mean_a = calculate_mean(sample_a)
     mean_b = calculate_mean(sample_b)
-    stddev_a = calculate_stddev(sample_a, mean_a)
-    stddev_b = calculate_stddev(sample_b, mean_b)
+    std_dev_a = calculate_std_dev(sample_a, mean_a)
+    std_dev_b = calculate_std_dev(sample_b, mean_b)
 
-    # Perform a t-test to compare the two samples
-    t_statistic = t_test(mean_a, mean_b, stddev_a, stddev_b, n, n)
-    print(f"T-statistic: {t_statistic}")
+    t_stat, p_value = perform_t_test(mean_a, std_dev_a, mean_b, std_dev_b, len(sample_a), len(sample_b))
 
-    # Critical t-value for α = 0.95 and df = n*2 - 2
-    critical_t = 1.660  # Approximate for df=198, consult t-table for exact value
-    if t_statistic > critical_t:
+    print(f"T-statistic: {t_stat}")
+    print(f"P-value: {p_value}")
+
+    if p_value < 0.05:  # Corresponding to α = 0.95
         print("Supplier B's gravel size is statistically significantly smaller than Supplier A's at α = 0.95.")
     else:
         print("No statistically significant difference in gravel size between Supplier A and B at α = 0.95.")
 
 
-# Execute the main function
 if __name__ == "__main__":
     main()
